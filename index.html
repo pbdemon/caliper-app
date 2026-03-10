@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Caliper Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .caliper-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .caliper-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .caliper-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .caliper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .caliper-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .caliper-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status.disconnected {
+            background: #fee;
+            color: #c33;
+        }
+        
+        .status.connected {
+            background: #efe;
+            color: #3c3;
+        }
+        
+        .measurement-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .measurement-value {
+            font-size: 56px;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .measurement-unit {
+            font-size: 20px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 3px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-connect {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-connect:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-disconnect {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .difference-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .difference-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .difference-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            line-height: 1;
+        }
+        
+        .difference-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📏 Dual Caliper Monitor</h1>
+        <p>Connect two digital calipers simultaneously</p>
+    </div>
+    
+    <div class="caliper-container">
+        <!-- Caliper 1 -->
+        <div class="caliper-card">
+            <div class="caliper-header">
+                <div class="caliper-title">Caliper 1</div>
+                <div class="caliper-number">1</div>
+            </div>
+            
+            <div class="status disconnected" id="status1">⚫ Disconnected</div>
+            
+            <div class="measurement-display">
+                <div class="measurement-value" id="value1">--</div>
+                <div class="measurement-unit" id="unit1">mm</div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Count</div>
+                    <div class="info-value" id="count1">0</div>
+                </div>
+               
+            <button class="btn btn-connect" id="connectBtn1" onclick="connectCaliper(1)">
+                Connect Caliper 1
+            </button>
+        </div>
+        
+        <!-- Caliper 2 -->
+        <div class="caliper-card">
+            <div class="caliper-header">
+                <div class="caliper-title">Caliper 2</div>
+                <div class="caliper-number">2</div>
+            </div>
+            
+            <div class="status disconnected" id="status2">⚫ Disconnected</div>
+            
+            <div class="measurement-display">
+                <div class="measurement-value" id="value2">--</div>
+                <div class="measurement-unit" id="unit2">mm</div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Count</div>
+                    <div class="info-value" id="count2">0</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Battery</div>
+                    <div class="battery-indicator">
+                        <div class="battery-bar">
+                            <div class="battery-fill" id="battery2" style="width: 100%"></div>
+                        </div>
+                        <span id="batteryPct2">100%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-connect" id="connectBtn2" onclick="connectCaliper(2)">
+                Connect Caliper 2
+            </button>
+        </div>
+    </div>
+    
+    <!-- Difference Display -->
+    <div class="difference-card">
+        <div class="difference-title">Measurement Difference</div>
+        <div class="difference-value" id="difference">--</div>
+        <div class="difference-label">Caliper 1 - Caliper 2</div>
+        
+        <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+            <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px;">
+                Tolerance Setting
+            </div>
+            
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">
+                        Max Difference (±)
+                    </label>
+                    <input type="number" 
+                           id="toleranceInput" 
+                           value="0.005" 
+                           step="0.001" 
+                           min="0"
+                           style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center;"
+                           onchange="updateTolerance()">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">
+                        Unit
+                    </label>
+                    <select id="toleranceUnit" 
+                            style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;"
+                            onchange="updateTolerance()">
+                        <option value="mm">mm</option>
+                        <option value="inches" selected>inches</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 11px; text-align: center; margin-bottom: 10px;">
+                <div style="padding: 8px; background: #4caf50; color: white; border-radius: 5px; font-weight: 600;">
+                    ✓ IN SPEC
+                </div>
+                <div style="padding: 8px; background: #ff9800; color: white; border-radius: 5px; font-weight: 600;">
+                    ⚠ WARNING
+                </div>
+                <div style="padding: 8px; background: #f44336; color: white; border-radius: 5px; font-weight: 600;">
+                    ✗ OUT OF SPEC
+                </div>
+            </div>
+            
+            <div style="font-size: 11px; color: #666; line-height: 1.4;">
+                <strong>Green:</strong> Within tolerance<br>
+                <strong>Orange:</strong> 1-2× tolerance (warning)<br>
+                <strong>Red:</strong> Over 2× tolerance (fail)
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px;">
+            <div style="font-size: 12px; color: #1976d2; margin-bottom: 5px;">Current Tolerance:</div>
+            <div style="font-size: 20px; font-weight: 700; color: #1565c0;" id="toleranceDisplay">±0.005 inches</div>
+        </div>
+    </div>
+
+    <script>
+        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+        const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+        
+        let devices = {
+            1: { device: null, characteristic: null, value: null },
+            2: { device: null, characteristic: null, value: null }
+        };
+        
+        let maxTolerance = 0.005; // Maximum acceptable difference (default in inches)
+        let toleranceUnit = 'inches'; // Unit for tolerance
+        
+        async function connectCaliper(num) {
+            try {
+                const btn = document.getElementById(`connectBtn${num}`);
+                
+                // If already connected, disconnect
+                if (devices[num].device && devices[num].device.gatt.connected) {
+                    devices[num].device.gatt.disconnect();
+                    updateStatus(num, false);
+                    return;
+                }
+                
+                btn.textContent = 'Connecting...';
+                btn.disabled = true;
+                
+                // Request device (iOS-compatible)
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'Caliper' }],
+                    optionalServices: [SERVICE_UUID]
+                });
+                
+                console.log(`Caliper ${num}: Found ${device.name}`);
+                
+                // iOS needs a small delay after device selection
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Connect to GATT server
+                const server = await device.gatt.connect();
+                
+                // iOS needs delay after connection
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // Get service and characteristic
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+                
+                // Subscribe to notifications
+                await characteristic.startNotifications();
+                characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    handleNotification(num, event);
+                });
+                
+                // Store references
+                devices[num].device = device;
+                devices[num].characteristic = characteristic;
+                
+                // Handle disconnection
+                device.addEventListener('gattserverdisconnected', () => {
+                    console.log(`Caliper ${num}: Disconnected`);
+                    updateStatus(num, false);
+                });
+                
+                updateStatus(num, true);
+                
+            } catch (error) {
+                console.error(`Caliper ${num} error:`, error);
+                alert(`Failed to connect to Caliper ${num}: ${error.message}`);
+                document.getElementById(`connectBtn${num}`).textContent = `Connect Caliper ${num}`;
+                document.getElementById(`connectBtn${num}`).disabled = false;
+            }
+        }
+        
+        function handleNotification(num, event) {
+            const value = new TextDecoder().decode(event.target.value);
+            
+            try {
+                const data = JSON.parse(value);
+                
+                // Store value
+                devices[num].value = data.value;
+                
+                // Update display
+                document.getElementById(`value${num}`).textContent = data.value.toFixed(3);
+                document.getElementById(`unit${num}`).textContent = data.unit;
+                document.getElementById(`count${num}`).textContent = data.count || 0;
+                
+                // Update battery if available
+                if (data.battery !== undefined) {
+                    updateBattery(num, data.battery);
+                }
+                
+                // Calculate difference if both connected
+                updateDifference();
+                
+            } catch (error) {
+                console.error(`Caliper ${num} parse error:`, error);
+            }
+        }
+        
+        function updateStatus(num, connected) {
+            const statusDiv = document.getElementById(`status${num}`);
+            const btn = document.getElementById(`connectBtn${num}`);
+            
+            if (connected) {
+                statusDiv.textContent = '🟢 Connected';
+                statusDiv.className = 'status connected';
+                btn.textContent = `Disconnect`;
+                btn.className = 'btn btn-disconnect';
+                btn.disabled = false;
+            } else {
+                statusDiv.textContent = '⚫ Disconnected';
+                statusDiv.className = 'status disconnected';
+                btn.textContent = `Connect Caliper ${num}`;
+                btn.className = 'btn btn-connect';
+                btn.disabled = false;
+                
+                document.getElementById(`value${num}`).textContent = '--';
+                document.getElementById(`count${num}`).textContent = '0';
+                
+                devices[num].value = null;
+                updateDifference();
+            }
+        }
+        
+        function updateBattery(num, percent) {
+            const fill = document.getElementById(`battery${num}`);
+            const pct = document.getElementById(`batteryPct${num}`);
+            
+            fill.style.width = percent + '%';
+            pct.textContent = percent + '%';
+            
+            fill.className = 'battery-fill';
+            if (percent < 20) {
+                fill.className = 'battery-fill critical';
+            } else if (percent < 50) {
+                fill.className = 'battery-fill low';
+            }
+        }
+        
+        function updateDifference() {
+            const diffDiv = document.getElementById('difference');
+            
+            if (devices[1].value !== null && devices[2].value !== null) {
+                // Calculate difference
+                const diff = devices[1].value - devices[2].value;
+                const absDiff = Math.abs(diff);
+                
+                diffDiv.textContent = diff.toFixed(3);
+                
+                // Color code based on tolerance
+                // Convert tolerance to same units as measurement
+                let toleranceInMeasurementUnits = maxTolerance;
+                
+                // If tolerance is in different units, convert
+                // Assuming measurements are always shown in their native units
+                const measurementUnit = document.getElementById('unit1').textContent;
+                if (toleranceUnit === 'mm' && measurementUnit === 'inches') {
+                    toleranceInMeasurementUnits = maxTolerance / 25.4; // mm to inches
+                } else if (toleranceUnit === 'inches' && measurementUnit === 'mm') {
+                    toleranceInMeasurementUnits = maxTolerance * 25.4; // inches to mm
+                }
+                
+                if (absDiff <= toleranceInMeasurementUnits) {
+                    // Within tolerance - GREEN
+                    diffDiv.style.color = '#4caf50';
+                } else if (absDiff <= toleranceInMeasurementUnits * 2) {
+                    // 1-2x tolerance - ORANGE (warning)
+                    diffDiv.style.color = '#ff9800';
+                } else {
+                    // Over 2x tolerance - RED (fail)
+                    diffDiv.style.color = '#f44336';
+                }
+            } else {
+                diffDiv.textContent = '--';
+                diffDiv.style.color = '#667eea';
+            }
+        }
+        
+        function updateTolerance() {
+            const input = document.getElementById('toleranceInput');
+            const unit = document.getElementById('toleranceUnit');
+            
+            maxTolerance = parseFloat(input.value);
+            toleranceUnit = unit.value;
+            
+            if (isNaN(maxTolerance) || maxTolerance < 0) {
+                maxTolerance = 0.005;
+                input.value = 0.005;
+            }
+            
+            // Update display
+            document.getElementById('toleranceDisplay').textContent = 
+                `±${maxTolerance.toFixed(3)} ${toleranceUnit}`;
+            
+            // Recalculate difference color
+            updateDifference();
+            
+            console.log('Tolerance updated:', maxTolerance, toleranceUnit);
+        }
+        
+        // Check for Web Bluetooth support
+        if (!navigator.bluetooth) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+                alert('📱 iOS detected!\n\nMake sure you have:\n- iOS 16.4 or later\n- Using Safari browser\n- Bluetooth enabled\n\nIf still not working, update iOS in Settings.');
+            } else {
+                alert('Web Bluetooth not supported! Use Chrome on Android or Safari on iOS 16.4+.');
+            }
+        }
+    </script>
+</body>
+</html>
